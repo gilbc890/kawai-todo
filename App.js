@@ -18,10 +18,18 @@ const { height, width } = Dimensions.get("window");
 
 export default class App extends React.Component {
   state = {
-    newToDo:""
+    newToDo: "",
+    loadedToDos: false
   }
+  componentDidMount = () => {
+    this._loadToDos();
+  };
+
   render() {
-    const { newToDo } = this.state;
+    const { newToDo, loadedToDos } = this.state;
+    if (!loadedToDos) {
+      return <AppLoading/>;
+    }
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
@@ -35,11 +43,11 @@ export default class App extends React.Component {
             placeholderTextColor={"#999"}
             returnKeyType={"done"}
             autoCorrect={false}
+            onEndEditing={this._addToDo}
           />
           <ScrollView contentContainerStyles={styles.toDos}>
-            <ToDo/>
+            <ToDo text={"Hello I am a ToDo"}/>
           </ScrollView>
-
         </View>
       </View>
     );
@@ -50,7 +58,14 @@ export default class App extends React.Component {
       newToDo: text
     });
   };
-
+  _loadToDos = () => {
+    this.setState({
+      loadedToDos:true
+    });
+  };
+  _addToDo = () => {
+    
+  }
 }
 const styles = StyleSheet.create({
   container: {
