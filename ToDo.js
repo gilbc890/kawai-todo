@@ -6,28 +6,41 @@ import { View,
           Dimensions,
           TextInput
         } 
-from 'react-native'
+from 'react-native';
+import PropTypes from "prop-types";
+
 
 const { width, height } = Dimensions.get("window");
 export default class ToDo extends Component{
-  state = {
-    isEditing:false,
-    isCompleted:false,
-    toDoValue:""
+  constructor(props){
+    super(props);
+    this.state = {
+      isEditing:false,
+      toDoValue: props.text
+    }
+  }
+  static propTypes = {
+    text: PropTypes.string.isRequired,
+    isCompleted:PropTypes.bool.isRequired,
+    deleteTodo: PropTypes.func.isRequired,
+    id: PropTypes.string.isRequired,
+    uncompletedToDo: PropTypes.func.isRequired,
+    completedToDo: PropTypes.func.isRequired,
+    updateToDo: PropTypes.func.isRequired
   }
   render(){
-    const { isCompleted, isEditing, toDoValue } = this.state;
-    const { text } = this.props;
+    const { isEditing, toDoValue } = this.state;
+    const { text, id, deleteTodo, isCompleted } = this.props;
     return(
-      <View style={styles.container}> 
-        <View styles={styles.column}>
+      <View style={styles.container}>
+        <View style={styles.column}>
           <TouchableOpacity onPress={this._toggleComplete}>
             <View 
               style={[
                 styles.circle, 
                 isCompleted ? styles.completedCircle : styles.uncompletedCircle
             ]}
-            ></View>
+            />
           </TouchableOpacity>
           {isEditing? 
             (<TextInput
@@ -49,52 +62,52 @@ export default class ToDo extends Component{
                 ]}>
                   { text }
               </Text>
-            )
-          }
-          <View style={styles.column}>
-            {isEditing ? (
-              <View style={styles.action}>
-                <TouchableOpacity onPressOut={this._finsihEditing}>
-                  <View style={styles.actionContainer}>
-                    <Text style={styles.actionText}>✅</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
+            )}
+          </View>
+          
+          {isEditing ? (
+            <View style={styles.actions}>
+              <TouchableOpacity onPressOut={this._finsihEditing}>
+                <View style={styles.actionContainer}>
+                  <Text style={styles.actionText}>✅</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
             ) 
             : (
-            <View style={styles.action}>
+            <View style={styles.actions}>
               <TouchableOpacity onPressOut={this._startEditing}>
                 <View style={styles.actionContainer}>
                   <Text style={styles.actionText}>✏️</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPressOut={() => deleteTodo(id)}>
                 <View style={styles.actionContainer}>
                   <Text style={styles.actionText}>❌</Text>
                 </View>
               </TouchableOpacity>
             </View>
             )}
-          </View>
-        </View>
       </View>
     )
   }
   _toggleComplete = () => {
-    this.setState(prevState => {
-      return {
-        isCompleted: !prevState.isCompleted
-      }
-    })
+    const { isCompleted, completedToDo, uncompletedToDo, id } = this.props;
+    if(isCompleted) {
+      uncompletedToDo(id);
+    } else {
+      completedToDo(id);
+    }
   }
   _startEditing = () => {
-    const { text } = this.props;
     this.setState({
       isEditing:true,
-      toDoValue: text
     })
   }
   _finsihEditing = () => {
+    const {toDoValue} = this.state;
+    const {id, updateToDo} = this.props;
+    updateToDo(id, toDoValue);
     this.setState({
       isEditing: false
     })
@@ -110,18 +123,19 @@ export default class ToDo extends Component{
 
 const styles = StyleSheet.create({
   container: {
-    width: width - 50,
+    width: width - 25,
     borderBottomColor: "#bbb",
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
   circle: {
     width: 30,
     height: 30,
     borderRadius: 15,
     borderWidth: 3,
+    marginLeft: 10,
     marginRight: 20
   },
   completedCircle: {
